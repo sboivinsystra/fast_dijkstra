@@ -2,7 +2,7 @@ name: Build Windows Wheels
 
 on:
   push:
-    branches: ["master"]
+    branches: ["main"]
   pull_request:
 
 jobs:
@@ -25,13 +25,14 @@ jobs:
       - name: Install cibuildwheel
         run: pip install cibuildwheel
 
-      - name: Build wheels (Windows)
+      - name: Build wheels
         env:
           CIBW_PLATFORM: windows
-          CIBW_BUILD: "cp${{ matrix.python-version/./ }}-*"
+          # Build only CPython for the selected version
+          CIBW_BUILD: "cp${{ matrix.python-version }}-*"
+          # Skip PyPy and older CPython versions
           CIBW_SKIP: "cp36-* cp37-* pp*"
 
-          # If you need MSVC 2019 toolchain:
           CIBW_ENVIRONMENT_WINDOWS: >
             CMAKE_GENERATOR="Visual Studio 17 2022"
 
