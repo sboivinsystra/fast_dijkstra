@@ -1,0 +1,44 @@
+name: Build Windows Wheels
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    strategy:
+      matrix:
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install cibuildwheel
+        run: pip install cibuildwheel
+
+      - name: Build wheels (Windows)
+        env:
+          CIBW_PLATFORM: windows
+          CIBW_BUILD: "cp${{ matrix.python-version/./ }}-*"
+          CIBW_SKIP: "cp36-* cp37-* pp*"
+
+          # If you need MSVC 2019 toolchain:
+          CIBW_ENVIRONMENT_WINDOWS: >
+            CMAKE_GENERATOR="Visual Studio 17 2022"
+
+        run: python -m cibuildwheel --output-dir wheelhouse
+
+      - name: Upload wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-wheels-${{ matrix.python-version }}
+          path: wheelhouse/*.whl
