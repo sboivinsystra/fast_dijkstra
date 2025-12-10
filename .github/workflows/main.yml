@@ -11,8 +11,8 @@ jobs:
 
     strategy:
       matrix:
-        python-version:  ["3.12"]
-        cibw-build: ["cp312"]
+        python-version:  ["3.11"]
+        cibw-build: ["cp311"]
 
     steps:
       - name: Checkout
