@@ -3,7 +3,7 @@ name: Build Windows Wheels
 on:
   push:
     branches: ["master"]
-  pull_request:
+  workflow_dispatch:
 
 jobs:
   build-windows:
@@ -17,29 +17,40 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install Boost headers
+        run: |
+          choco install boost-msvc-14.3 --yes
+        # Headers go into C:\local\boost_*\
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install cibuildwheel
-        run: pip install cibuildwheel
+      - name: Install build dependencies
+        run: |
+          pip install cibuildwheel pybind11 cmake
 
-      - name: Build wheels
+      - name: Build wheel with cibuildwheel
         env:
           CIBW_PLATFORM: windows
-          # Build only CPython for the selected version
+
+          # Build only the specific CPython version
           CIBW_BUILD: "cp${{ matrix.python-version }}-*"
-          # Skip PyPy and older CPython versions
-          CIBW_SKIP: "cp36-* cp37-* pp*"
 
+          # Skip PyPy
+          CIBW_SKIP: "pp*"
+
+          # Environment inside the wheel build
           CIBW_ENVIRONMENT_WINDOWS: >
+            BOOST_ROOT="C:\local\boost_1_86_0"
+            BOOST_INCLUDEDIR="C:\local\boost_1_86_0"
             CMAKE_GENERATOR="Visual Studio 17 2022"
-
-        run: python -m cibuildwheel --output-dir wheelhouse
+        run: |
+          python -m cibuildwheel --output-dir wheelhouse
 
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: windows-wheels-${{ matrix.python-version }}
+          name: bgl-wheels-${{ matrix.python-version }}
           path: wheelhouse/*.whl
