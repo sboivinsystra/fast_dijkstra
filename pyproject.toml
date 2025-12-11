@@ -11,5 +11,45 @@ pybind11 = "^3.0.1"
 
 
 [build-system]
-requires = ["setuptools>=42", "wheel", "pybind11"]
+requires = ["setuptools>=42", "wheel", "pybind11>=2.10.0", "cibuildwheel>=2.16.0"]
 build-backend = "setuptools.build_meta"
+
+[tool.cibuildwheel]
+# Which architectures to build for (e.g., x86_64, aarch64)
+archs = ["auto"]
+
+# Exclude some older or less common Python versions
+skip = ["cp36-*", "cp37-*", "pp*", "*-musllinux*"]
+
+# --- BOOST Configuration ---
+# Install Boost from a pre-built source.
+# We use the environment variable BOOST_ROOT to tell setup.py where to find it.
+environment = { CIBW_ENVIRONMENT = "BOOST_ROOT=/usr/local/boost" }
+
+# Download and extract Boost on Linux/macOS before building
+before-build = [
+    # Download Boost on Linux/macOS
+    "curl -L https://boostorg.jfrog.io/artifactory/main/release/1.82.0/source/boost_1_82_0.tar.gz | tar -xz -C /",
+    # Set the BOOST_ROOT for the build step (Windows is handled differently below)
+    "export BOOST_ROOT=/boost_1_82_0"
+]
+
+# --- WINDOWS BOOST Configuration ---
+# On Windows, we use vcpkg to install Boost before the build
+# CIBW_BEFORE_BUILD sets up the required environment and installs dependencies.
+before-build-windows = [
+    # Install vcpkg for package management
+    "git clone https://github.com/microsoft/vcpkg $VCPKG_ROOT",
+    # Install boost-graph and setup environment variables
+    "$VCPKG_ROOT/vcpkg install boost-graph --triplet x64-windows",
+    "cmd /c $VCPKG_ROOT\\vcpkg integrate install",
+    "cmd /c set BOOST_ROOT=$VCPKG_ROOT\\installed\\x64-windows"
+]
+
+# --- OpenMP Configuration (via environment variables for the compiler) ---
+# Note: The actual compiler flags are handled by your setup.py based on OS,
+# but sometimes environment variables help ensure the flags are passed.
+# This ensures linker flags for OpenMP are available.
+environment-linux = { CIBW_ENVIRONMENT = "LDFLAGS='-fopenmp'" }
+environment-macos = { CIBW_ENVIRONMENT = "LDFLAGS='-lomp'" }
+# Windows handles OpenMP via the setup.py compiler flag `/openmp`
