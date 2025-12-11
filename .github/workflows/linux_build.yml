@@ -32,9 +32,6 @@ jobs:
           pip install cibuildwheel
 
       - name: Build wheel with cibuildwheel
-        env:
-          CIBW_ENVIRONMENT: >
-              BOOST_INCLUDEDIR="/usr/include"
         run: |
           python -m cibuildwheel --output-dir wheelhouse
 

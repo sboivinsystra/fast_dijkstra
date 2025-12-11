@@ -3,8 +3,8 @@ import pybind11
 import platform
 import os
 
-boost_include = os.environ.get("BOOST_INCLUDEDIR", r"C:\local\boost_1_87_0")
-print("env", boost_include)
+boost_include = os.environ.get("BOOST_INCLUDEDIR", "")
+print("boost_include: ", boost_include)
 
 
 # Define OpenMP flags based on the compiler
