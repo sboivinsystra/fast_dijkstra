@@ -37,7 +37,8 @@ before-build = [
 # --- WINDOWS BOOST Configuration ---
 # On Windows, we use vcpkg to install Boost before the build
 # CIBW_BEFORE_BUILD sets up the required environment and installs dependencies.
-before-build-windows = [
+[tool.cibuildwheel.windows]
+before-build = [
     # Install vcpkg for package management
     "git clone https://github.com/microsoft/vcpkg $VCPKG_ROOT",
     # Install boost-graph and setup environment variables
