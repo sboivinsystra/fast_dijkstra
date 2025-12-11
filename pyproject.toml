@@ -51,6 +51,8 @@ before-build = [
 # Note: The actual compiler flags are handled by your setup.py based on OS,
 # but sometimes environment variables help ensure the flags are passed.
 # This ensures linker flags for OpenMP are available.
-environment-linux = { CIBW_ENVIRONMENT = "LDFLAGS='-fopenmp'" }
-environment-macos = { CIBW_ENVIRONMENT = "LDFLAGS='-lomp'" }
+[tool.cibuildwheel.linux]
+environment = { CIBW_ENVIRONMENT = "LDFLAGS='-fopenmp'" }
+[tool.cibuildwheel.macos]
+environment = { CIBW_ENVIRONMENT = "LDFLAGS='-lomp'" }
 # Windows handles OpenMP via the setup.py compiler flag `/openmp`
