@@ -17,9 +17,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      # - name: Install Boost headers
-      #   run: |
-      #     choco install boost-msvc-14.3 --yes
+      - name: Install Boost headers
+        run: |
+          choco install boost-msvc-14.3 --yes
         # Headers go into C:\local\boost_*\
 
       - name: Set up Python
