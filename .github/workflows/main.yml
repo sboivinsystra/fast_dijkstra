@@ -19,7 +19,7 @@ jobs:
 
       - name: Install Boost headers
         run: |
-          choco install boost-msvc-14.3 --yes
+          choco install boost-msvc-14.3 -y --version=1.87.0
         # Headers go into C:\local\boost_*\
 
       - name: Set up Python
@@ -35,8 +35,8 @@ jobs:
         env:
           # Environment inside the wheel build
           CIBW_ENVIRONMENT_WINDOWS: >
-              BOOST_ROOT="C:\\local\\boost_1_86_0"
-              BOOST_INCLUDEDIR="C:\\local\\boost_1_86_0"
+              BOOST_ROOT="C:\\local\\boost_1_87_0"
+              BOOST_INCLUDEDIR="C:\\local\\boost_1_87_0"
               CMAKE_GENERATOR="Visual Studio 17 2022"
         run: |
           python -m cibuildwheel --output-dir wheelhouse
