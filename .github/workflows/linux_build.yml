@@ -1,0 +1,45 @@
+name: Build Ubuntu Wheels
+
+on:
+  push:
+    branches: ["master"]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install Boost headers
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libboost-all-dev
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12' # <-- Ensure the tooling is 3.11 or newer
+
+      - name: Install build dependencies
+        run: |
+          pip install cibuildwheel
+
+      - name: Build wheel with cibuildwheel
+        env:
+          CIBW_ENVIRONMENT: >
+              BOOST_ROOT="/usr/include"
+        run: |
+          python -m cibuildwheel --output-dir wheelhouse
+
+      - name: Upload wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: bgl-wheels-${{ matrix.python-version }}
+          path: wheelhouse/*.whl

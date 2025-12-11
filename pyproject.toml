@@ -20,4 +20,6 @@ build-backend = "setuptools.build_meta"
 archs = ["auto"]
 
 # Exclude some older or less common Python versions
-skip = ["cp36-*", "cp37-*", "cp38-*", "cp39-*", "pp*", "*-musllinux*"]
+#skip = ["cp36-*", "cp37-*", "cp38-*", "cp39-*", "pp*", "*-musllinux*"]
+
+build = ["cp312-*"]
