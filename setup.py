@@ -28,8 +28,8 @@ omp_compile_args, omp_link_args = get_openmp_flags()
 
 ext_modules = [
     Extension(
-        "pyboostgraph",
-        ["pyboostgraph.cpp"],
+        "boostpy",
+        ["boostpy.cpp"],
         include_dirs=include_dirs,
         language="c++",
         extra_compile_args=omp_compile_args,
@@ -38,7 +38,7 @@ ext_modules = [
 ]
 
 setup(
-    name="pyboostgraph",
-    version="0.14",
+    name="boostpy",
+    version="0.1",
     ext_modules=ext_modules,
 )
