@@ -1,36 +1,37 @@
-# ... (rest of the file after your build jobs)
+name: Create Release
 
-# --- Job 3: Create Release and Upload Assets ---
-create-release:
-  # CRITICAL: This job depends on both build jobs succeeding
-  needs: [build-windows, build-linux] 
-  runs-on: ubuntu-latest
+on:
+  push:
+    tags:        
+      - '*'          # Push events to every tag not containing /
+  workflow_dispatch:
 
-  # Only run this step when a tag starting with 'v' is pushed (e.g., v0.14)
-  if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
 
-  steps:
-    # 1. Checkout the code to access release tools
-    - name: Checkout Code
-      uses: actions/checkout@v4
+    steps:
+      # 1. Checkout the code to access release tools
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    # 2. Download ALL built wheel artifacts from previous jobs
-    - name: Download all wheels
-      uses: actions/download-artifact@v4
-      with:
-        # Downloads all artifacts into the 'dist' folder. 
-        # The contents of 'bgl-wheels-windows' and 'bgl-wheels-linux' 
-        # will be extracted into separate subdirectories inside 'dist'.
-        path: dist
+      # 2. Download ALL built wheel artifacts from previous jobs
+      - name: Download all wheels
+        uses: actions/download-artifact@v4
+        with:
+          # Downloads all artifacts into the 'dist' folder. 
+          # The contents of 'bgl-wheels-windows' and 'bgl-wheels-linux' 
+          # will be extracted into separate subdirectories inside 'dist'.
+          path: dist
 
-    # 3. Create GitHub Release and Upload Assets
-    - name: Create GitHub Release and Upload Assets
-      uses: softprops/action-gh-release@v2
-      with:
-        # Use the tag that triggered this workflow (e.g., v0.14)
-        tag_name: ${{ github.ref_name }} 
-        name: BoostPy ${{ github.ref_name }} Wheels
-        # Use the token secret you created previously
-        token: ${{ secrets.GH_TOKEN }}
-        # The crucial step: point to all .whl files recursively within the downloaded 'dist' directory
-        files: dist/**/*.whl
+      # 3. Create GitHub Release and Upload Assets
+      - name: Create GitHub Release and Upload Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          # Use the tag that triggered this workflow (e.g., v0.14)
+          tag_name: ${{ github.ref_name }} 
+          name: BoostPy ${{ github.ref_name }} Wheels
+          # Use the token secret you created previously
+          token: ${{ secrets.GH_TOKEN }}
+          # The crucial step: point to all .whl files recursively within the downloaded 'dist' directory
+          files: dist/**/*.whl
