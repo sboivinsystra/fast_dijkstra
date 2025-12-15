@@ -2,7 +2,8 @@ name: Build wheels and release
 
 on:
   push:
-    branches: ["deploy"]
+    tags:
+      - "v*"
   workflow_dispatch:
 
 jobs:
@@ -96,8 +97,8 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ github.run_number }}
-          name: Release v${{ github.run_number }}
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
           files: dist/*.whl
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
