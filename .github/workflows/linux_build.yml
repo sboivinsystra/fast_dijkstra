@@ -1,4 +1,4 @@
-name: Build Ubuntu Wheels
+name: build-linux
 
 on:
   push:
