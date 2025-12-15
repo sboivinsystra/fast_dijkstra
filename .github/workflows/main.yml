@@ -1,4 +1,4 @@
-name: build-windows
+name: Build wheels and release
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-ubuntu:
+  build-linux:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
