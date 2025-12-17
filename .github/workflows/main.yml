@@ -20,7 +20,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12' # <-- Ensure the tooling is 3.11 or newer
+          python-version: '3.12'
 
       - name: Install build dependencies
         run: |
@@ -29,6 +29,7 @@ jobs:
       - name: Build wheel with cibuildwheel
         env:
           # Install Boost inside manylinux container
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
           CIBW_BEFORE_ALL_LINUX: |
             yum install -y boost-devel
         run: |
@@ -85,7 +86,6 @@ jobs:
       - name: Download all wheels
         uses: actions/download-artifact@v4
         with:
-          # FIX 2: Omit 'name' to download all artifacts to subdirectories (wheels-linux/, wheels-windows/)
           path: dist 
 
       - name: Move all wheels to root for release
