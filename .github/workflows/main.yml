@@ -120,7 +120,7 @@ jobs:
       
       - name: Flatten wheel directory
         run: |
-          mkdir -p dist_flat
+          mkdir -p dist
           find temp_dist -name "*.whl" -exec mv {} dist/ \;
 
       - name: Publish to PyPI
