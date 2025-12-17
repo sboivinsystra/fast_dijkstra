@@ -39,6 +39,6 @@ ext_modules = [
 
 setup(
     name="boostpy",
-    version="0.31",
+    version="0.2",
     ext_modules=ext_modules,
 )
