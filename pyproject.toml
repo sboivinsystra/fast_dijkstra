@@ -14,7 +14,7 @@ twine = "^6.2.0"
 [project]
 name = "fast_dijkstra"
 version = "1.0.1"
-authors = ["Simon Boivin <sboivin@systra.com>"]
+authors = [{ name="Simon Boivin", email="sboivin@systra.com" }],
 description = "Fast Dijkstra using Boost Graph Library"
 readme = "README.md"
 
