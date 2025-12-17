@@ -1,6 +1,6 @@
 #!/bin/bash
 
-REPO="https://github.com/sboivinsystra/dijkstra_bgl"
+REPO="https://github.com/sboivinsystra/fast_dijkstra"
 TEMP_DIR="pypi_upload_temp"
 
 # --- Load .env file ---
@@ -37,7 +37,7 @@ cd $TEMP_DIR
 # 4. Download Assets from GitHub via API
 echo "Fetching asset list for release $TAG..."
 # This API call gets the download URLs for all files in that release
-API_URL="https://api.github.com/repos/sboivinsystra/dijkstra_bgl/releases/tags/$TAG"
+API_URL="https://api.github.com/repos/sboivinsystra/fast_dijkstra/releases/tags/$TAG"
 ASSET_URLS=$(curl -s $API_URL | grep "browser_download_url" | cut -d '"' -f 4)
 
 # Safety Check: Exit if no assets found
