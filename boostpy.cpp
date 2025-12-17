@@ -163,7 +163,7 @@ limited_directed_dijkstra(const std::vector<Edge> &edges,
 }
 
 
-PYBIND11_MODULE(boostpy, m)
+PYBIND11_MODULE(fast_dijkstra, m)
 {
     m.doc() = "Boost Graph Library Dijkstra wrapper with multi-source support";
     m.def("directed_dijkstra", &directed_dijkstra,

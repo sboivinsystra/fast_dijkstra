@@ -28,7 +28,7 @@ omp_compile_args, omp_link_args = get_openmp_flags()
 
 ext_modules = [
     Extension(
-        "boostpy",
+        "fast_dijkstra",
         ["boostpy.cpp"],
         include_dirs=include_dirs,
         language="c++",
@@ -38,7 +38,7 @@ ext_modules = [
 ]
 
 setup(
-    name="boostpy",
+    name="fast_dijkstra",
     version="1.0.0",
     authors=["Simon Boivin <sboivin@systra.com>"],
     description="Fast Dijkstra using Boost Graph Library",
