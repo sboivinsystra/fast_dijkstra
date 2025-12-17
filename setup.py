@@ -38,7 +38,5 @@ ext_modules = [
 ]
 
 setup(
-    name="fast_dijkstra",
-    version="1.0.1",
     ext_modules=ext_modules,
 )

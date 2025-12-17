@@ -170,13 +170,57 @@ PYBIND11_MODULE(fast_dijkstra, m)
           py::arg("edges"),
           py::arg("weights"),
           py::arg("sources"),
-          py::arg("num_threads")=1);
+          py::arg("num_threads")=1,
+        R"pbdoc(
+            Compute shortest paths using Dijkstra's algorithm.
+
+            Parameters
+            ----------
+            edges : List[Tuple[int, int]] | List[List[int, int]]
+                Directed List (source, target)
+            weights : Sequence[float]
+                Edge weights (same order as edges)
+            sources : List[int]
+                Source index
+            num_threads: int
+                default = 1
+            Returns
+            -------
+            distances : numpy.ndarray
+                Array of shape (num_sources, num_nodes) with shortest distances
+            predecessors : numpy.ndarray
+                Array of shape (num_sources, num_nodes) with predecessor indices
+            )pbdoc"
+            );
     m.def("limited_directed_dijkstra", &limited_directed_dijkstra,
           py::arg("edges"),
           py::arg("weights"),
           py::arg("sources"),
           py::arg("limit"),
-          py::arg("num_threads")=1);
+          py::arg("num_threads")=1,
+          R"pbdoc(
+            Compute shortest paths using Dijkstra's algorithm.
+
+            Parameters
+            ----------
+            edges : List[Tuple[int, int]] | List[List[int, int]]
+                Directed List (source, target)
+            weights : Sequence[float]
+                Edge weights (same order as edges)
+            sources : List[int]
+                Source index
+            limit : float
+                stop dijkstra when limit is reach.
+            num_threads: int
+                default = 1
+            Returns
+            -------
+            distances : numpy.ndarray
+                Array of shape (num_sources, num_nodes) with shortest distances
+            predecessors : numpy.ndarray
+                Array of shape (num_sources, num_nodes) with predecessor indices
+            )pbdoc"
+            );
 }
 
 
