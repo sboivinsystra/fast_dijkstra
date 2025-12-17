@@ -151,7 +151,7 @@ limited_directed_dijkstra(const std::vector<Edge> &edges,
                 source,
                 predecessor_map(pred_map)
                 .distance_map(dist_map)
-                .visitor(distance_cutoff_visitor(dist_map, limit))
+                .visitor(distance_cutoff_visitor<decltype(dist_map)>(dist_map, limit))
             );
         } catch (const std::runtime_error&) {
             // cutoff reached, Dijkstra stopped early
