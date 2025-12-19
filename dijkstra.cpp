@@ -13,6 +13,8 @@ struct CSRGraph {
     std::vector<double> weights;
 };
 
+const double INF = std::numeric_limits<double>::infinity();
+
 /* ---------------- Single-source Dijkstra ---------------- */
 
 void dijkstra_csr(
@@ -22,13 +24,6 @@ void dijkstra_csr(
     int* pred,
     double cutoff
 ) {
-    const double INF = std::numeric_limits<double>::infinity();
-
-    // Init
-    for (int i = 0; i < g.n; ++i) {
-        dist[i] = INF;
-        pred[i] = -9999;
-    }
 
     using Item = std::pair<double, int>;
     std::priority_queue<Item, std::vector<Item>, std::greater<Item>> queue;
@@ -87,24 +82,26 @@ multi_source_dijkstra(
 
     auto distances_ptr = distances_out.mutable_data();
     auto predecessors_ptr = predecessors_out.mutable_data();
+    for (int i = 0; i < num_sources * num_nodes; ++i) {
+        distances_ptr[i] = INF;
+        predecessors_ptr[i] = -9999;
+    }
     const int* src_ptr = sources.data();
 
-
     // ---- Run Dijkstra for each source ----
-    for (int i = 0; i < num_sources; ++i) {
-        int source = src_ptr[i];
-        double *dist_row = distances_ptr + i * num_nodes;
-        int *pred_row = predecessors_ptr + i * num_nodes;
+    for (int si = 0; si < num_sources; ++si) {
+        double *dist_row = distances_ptr + si * num_nodes;
+        int *pred_row = predecessors_ptr + si * num_nodes;
         dijkstra_csr(
             g,
-            source,
+            src_ptr[si],
             dist_row,
             pred_row,
             cutoff
         );
     }
 
-    return {distances, predecessors};
+    return {distances_out, predecessors_out};
 }
 
 /* ---------------- pybind11 module ---------------- */
@@ -117,6 +114,6 @@ PYBIND11_MODULE(fast_dijkstra, m) {
         py::arg("indices"),
         py::arg("weights"),
         py::arg("sources"),
-        py::arg("cutoff") = std::numeric_limits<double>::infinity()
+        py::arg("cutoff") = INF
     );
 }
