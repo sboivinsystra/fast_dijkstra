@@ -91,7 +91,7 @@ multi_source_dijkstra(
 
    
 
-    #pragma omp parallel for
+    #pragma omp parallel for schedule(dynamic)
     for (int si = 0; si < num_sources; ++si) {
         double *dist_row = distances_ptr + si * num_nodes;
         int *pred_row = predecessors_ptr + si * num_nodes;

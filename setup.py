@@ -1,16 +1,8 @@
 from setuptools import setup, Extension
 import pybind11
 import platform
-import os
 
 system = platform.system()
-boost_include = os.environ.get("BOOST_INCLUDEDIR", "")
-
-
-include_dirs = [pybind11.get_include()]
-if system == "Windows":
-    print("boost_include: ", boost_include)
-    include_dirs.append(boost_include)
 
 
 # Define OpenMP flags based on the compiler
@@ -30,7 +22,7 @@ ext_modules = [
     Extension(
         "fast_dijkstra",
         sources=["dijkstra.cpp"],
-        include_dirs=include_dirs,
+        include_dirs=[pybind11.get_include()],
         language="c++",
         extra_compile_args=omp_compile_args,
         extra_link_args=omp_link_args,

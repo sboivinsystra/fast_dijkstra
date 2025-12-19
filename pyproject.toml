@@ -2,7 +2,7 @@
 name = "fast_dijkstra"           # Must match setup.py extension name
 version = "0.0.1"
 authors = ["Simon Boivin <sboivin@systra.com>"]
-description = "Fast Dijkstra using Boost Graph Library"
+description = "Fast Dijkstra"
 readme = "README.md"
 
 [tool.poetry.dependencies]
@@ -14,11 +14,11 @@ build = "^1.3.0"
 
 [project]
 name = "fast_dijkstra"
-version = "2.0.7"
+version = "2.0.0"
 authors = [
     { name="Simon Boivin", email="sboivin@systra.com" }
 ]
-description = "Fast Dijkstra using Boost Graph Library"
+description = "Fast Dijkstra"
 readme = "README.md"
 
 [project.urls]

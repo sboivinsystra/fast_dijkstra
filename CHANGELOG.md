@@ -1,3 +1,7 @@
+## [2.0.0] (2025-12-19)
+## changes
+* remove Boost do a minHeap dijkstra with std::priority_queue
+
 ## [1.1.2] (2025-12-19)
 ## changes
 * smaller linux build size
