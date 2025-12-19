@@ -63,3 +63,7 @@ Github action will build wheels for windows and Linux.
 sudo apt-get install -y libboost-all-dev
 
 poetry run python setup.py bdist_wheel
+
+ or 
+
+poetry run python -m build --wheel

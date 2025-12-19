@@ -29,7 +29,7 @@ omp_compile_args, omp_link_args = get_openmp_flags()
 ext_modules = [
     Extension(
         "fast_dijkstra",
-        ["boostpy.cpp"],
+        sources=["boostpy.cpp"],
         include_dirs=include_dirs,
         language="c++",
         extra_compile_args=omp_compile_args,

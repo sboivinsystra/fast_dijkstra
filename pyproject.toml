@@ -9,11 +9,12 @@ readme = "README.md"
 python = "^3.12"
 pybind11 = "^3.0.1"
 twine = "^6.2.0"
+build = "^1.3.0"
 
 
 [project]
 name = "fast_dijkstra"
-version = "1.1.1"
+version = "1.1.2"
 authors = [
     { name="Simon Boivin", email="sboivin@systra.com" }
 ]
