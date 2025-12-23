@@ -89,6 +89,8 @@ jobs:
           pip install cibuildwheel
 
       - name: Build wheel with cibuildwheel
+        env:
+          CIBW_BEFORE_BUILD_MACOS: "brew install libomp"
         run: |
           python -m cibuildwheel --output-dir wheelhouse
 
