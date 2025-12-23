@@ -3,7 +3,6 @@ import pybind11
 import platform
 
 system = platform.system()
-print(platform.system())
 
 
 # Define OpenMP flags based on the compiler
