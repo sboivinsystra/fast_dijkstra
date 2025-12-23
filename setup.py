@@ -11,7 +11,7 @@ def get_openmp_flags():
         return ["/std:c++17", "/openmp"], []  # Compile flags, Link flags
     elif system == "Darwin":  # macOS (Apple Clang) is tricky with OpenMP
         # You might need 'libomp' installed via brew
-        return ["-Xpreprocessor", "-fopenmp"], ["-lomp"]
+        return ["-std=c++17", "-Xpreprocessor", "-fopenmp"], ["-lomp"]
     else:  # Linux / GCC
         return ["-fopenmp"], ["-fopenmp"]
 
