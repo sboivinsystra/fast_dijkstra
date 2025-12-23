@@ -91,6 +91,10 @@ jobs:
       - name: Build wheel with cibuildwheel
         env:
           CIBW_BEFORE_BUILD_MACOS: "brew install libomp"
+        CIBW_ENVIRONMENT_MACOS: >
+          LDFLAGS="-L$(brew --prefix libomp)/lib"
+          CPPFLAGS="-I$(brew --prefix libomp)/include"
+          MACOSX_DEPLOYMENT_TARGET=11.0
         run: |
           python -m cibuildwheel --output-dir wheelhouse
 
