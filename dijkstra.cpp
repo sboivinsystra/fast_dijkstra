@@ -3,6 +3,7 @@
 #include <vector>
 #include <queue>
 #include <limits>
+#include <omp.h>
 
 namespace py = pybind11;
 
@@ -60,12 +61,12 @@ multi_source_dijkstra(
     py::array_t<int> indices,
     py::array_t<double> weights,
     py::array_t<int> sources,
-    double cutoff = std::numeric_limits<double>::infinity()
+    double cutoff = std::numeric_limits<double>::infinity(),
+    int num_threads = -1
 ) {
-    // ---- Validate shapes ----
-    // if (indices.size() != weights.size()) {
-    //     throw std::runtime_error("indices and weights must have same length");
-    // }
+
+    if (num_threads > 0)
+        omp_set_num_threads(num_threads);
 
     int num_nodes = indptr.size() - 1;
     int num_sources = sources.size();
@@ -110,13 +111,34 @@ multi_source_dijkstra(
 /* ---------------- pybind11 module ---------------- */
 
 PYBIND11_MODULE(fast_dijkstra, m) {
-    m.doc() = "Fast CSR-based multi-source Dijkstra";
+    m.doc() = "Fast multi-source Dijkstra";
 
     m.def("dijkstra", &multi_source_dijkstra,
         py::arg("indptr"),
         py::arg("indices"),
         py::arg("weights"),
         py::arg("sources"),
-        py::arg("cutoff") = INF
+        py::arg("cutoff") = INF,
+        py::arg("num_threads") = -1,
+        R"pbdoc(
+        Compute shortest paths using Dijkstra's algorithm. on a csr_graph
+
+        Parameters
+        ----------
+        indptr : List[int]
+        indices : List[int]
+        weights : Sequence[float]
+        sources : List[int]
+        cutoff: OPTIONAL  float (default = np.inf)
+        num_threads: OPTIONAL int (default = -1)
+            -1: maximum allowed threads
+
+        Returns
+        -------
+        distances : numpy.ndarray
+            Array of shape (num_sources, num_nodes) with shortest distances
+        predecessors : numpy.ndarray
+            Array of shape (num_sources, num_nodes) with predecessor indices
+        )pbdoc"
     );
 }
