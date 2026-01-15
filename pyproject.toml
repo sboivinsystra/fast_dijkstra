@@ -14,7 +14,7 @@ build = "^1.3.0"
 
 [project]
 name = "fast_dijkstra"
-version = "2.1.1"
+version = "2.1.2"
 authors = [
     { name="Simon Boivin", email="sboivin@systra.com" }
 ]
@@ -38,4 +38,4 @@ archs = ["auto"]
 #skip = ["cp36-*", "cp37-*", "cp38-*", "cp39-*", "pp*", "*-musllinux*"]
 skip = ["*-musllinux*"]
 
-build = ["cp312-*"]
+build = ["cp312-*, cp313-*"]

@@ -1,3 +1,8 @@
+## [2.1.2] (2026-01-15)
+## changes
+* more output initialization (dist to inf and prd to -9999) to the parallel part
+* add support for python 3.13
+
 ## [2.1.1] (2026-01-05)
 ## changes
 * remove limit early exit (more like scipy)

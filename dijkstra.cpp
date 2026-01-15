@@ -86,17 +86,19 @@ multi_source_dijkstra(
     py::array_t<int> predecessors_out({num_sources, num_nodes});
     auto distances_ptr = distances_out.mutable_data();
     auto predecessors_ptr = predecessors_out.mutable_data();
-    for (int i = 0; i < num_sources * num_nodes; ++i) {
-        distances_ptr[i] = INF;
-        predecessors_ptr[i] = -9999;
-    }
-
    
 
     #pragma omp parallel for schedule(dynamic)
     for (int si = 0; si < num_sources; ++si) {
         double *dist_row = distances_ptr + si * num_nodes;
         int *pred_row = predecessors_ptr + si * num_nodes;
+
+        for (int i = 0; i < num_nodes; ++i) {
+            dist_row[i] = INF;
+            pred_row[i] = -9999;
+        }
+
+
         single_source_dijkstra(
             g,
             src_ptr[si],
