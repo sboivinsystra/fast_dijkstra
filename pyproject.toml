@@ -38,4 +38,4 @@ archs = ["auto"]
 #skip = ["cp36-*", "cp37-*", "cp38-*", "cp39-*", "pp*", "*-musllinux*"]
 skip = ["*-musllinux*"]
 
-build = ["cp312-*, cp313-*"]
+build = ["cp312-*", "cp313-*"]
