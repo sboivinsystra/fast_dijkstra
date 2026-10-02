@@ -13,7 +13,7 @@ def get_openmp_flags():
         # You might need 'libomp' installed via brew
         return ["-std=c++17", "-Xpreprocessor", "-fopenmp"], ["-lomp"]
     else:  # Linux / GCC
-        return ["-fopenmp"], ["-fopenmp"]
+        return ["-fopenmp", "-O3", "-march=native", "-ffast-math"], ["-fopenmp"]
 
 
 omp_compile_args, omp_link_args = get_openmp_flags()
