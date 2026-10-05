@@ -1,3 +1,9 @@
+## [3.0.0] (2026-01-05)
+## Features
+* targets: list[int] or None. will return only the distance for the specify targets.
+* return_predecessors: bool. will return an empty matrix if False
+* cutoff: list[float] | float. can use a cutoff per source or a global one.
+
 ## [2.1.1] (2026-01-05)
 ## changes
 * remove limit early exit (more like scipy)
