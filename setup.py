@@ -1,6 +1,7 @@
-from setuptools import setup, Extension
-import pybind11
 import platform
+
+import pybind11
+from setuptools import Extension, setup
 
 system = platform.system()
 

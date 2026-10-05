@@ -76,8 +76,8 @@ multi_source_dijkstra(
     py::array_t<int> indices,
     py::array_t<double> weights,
     py::array_t<int> sources,
-    py::array_t<int> targets,
-    double cutoff = std::numeric_limits<double>::infinity(),
+    py::object targets = py::none(),
+    py::object cutoff =  py::float_(INF),
     bool return_predecessors=true,
     int num_threads = -1
 ) {
@@ -86,7 +86,7 @@ multi_source_dijkstra(
 
     const int num_nodes = indptr.size() - 1;
     const int num_sources = sources.size();
-    const int num_targets = targets.size();
+    const int* src_ptr = sources.data();
 
     // ---- Build graph (once) ----
     CSRGraph g;
@@ -95,16 +95,36 @@ multi_source_dijkstra(
     g.indices = indices.data();
     g.weights = weights.data();
 
-    //pointer to sources
-    const int* src_ptr = sources.data();
-  
-    // create a lut node to target
-    std::vector<int> target_index(num_nodes, -1);    
-    const int* target_ptr = targets.data();
-    const int* target_index_ptr = target_index.data();
-    for (int i = 0; i < num_targets; ++i) {
-        target_index[target_ptr[i]] = i;
+    // cutoff
+
+    std::vector<double> source_cutoffs;
+    if (py::isinstance<py::float_>(cutoff) ||
+        py::isinstance<py::int_>(cutoff)) {
+        source_cutoffs.assign(num_sources, cutoff.cast<double>());
+    } else {
+        py::array_t<double> cutoff_array = cutoff.cast<py::array_t<double>>();
+        if (cutoff_array.size() != num_sources) throw std::runtime_error("cutoff array must have one value per source" );
+        auto cutoff_ptr = cutoff_array.data();
+        source_cutoffs.assign(cutoff_ptr,cutoff_ptr + num_sources);
     }
+
+
+    // targets. if none uses all nodes. else create a lut to remap nodes to the targets
+    
+    std::vector<int> target_index(num_nodes, -1);  
+    const int* target_index_ptr = target_index.data();  
+    int num_targets;
+
+    if (targets.is_none()) {
+        num_targets = num_nodes;
+        for (int i = 0; i < num_nodes; ++i) target_index[i] = i;   
+    } else {
+        auto targets_array = targets.cast<py::array_t<int>>();
+        num_targets = targets_array.size();
+        const int* targets_ptr = targets_array.data();
+        for (int i = 0; i < num_targets; ++i) target_index[targets_ptr[i]] = i;
+    }
+
 
     // ---- Allocate outputs ----
     // create a matrix (num_source,num_targets) full of inf
@@ -124,9 +144,11 @@ multi_source_dijkstra(
    
     #pragma omp parallel for schedule(dynamic)
     for (int si = 0; si < num_sources; ++si) {
+        double source_cutoff = source_cutoffs[si];
         double *dist_row = distances_ptr + si * num_targets;
         int* pred_row = nullptr;
         if (return_predecessors) pred_row = predecessors_out.mutable_data() + si * num_nodes;
+
         
         single_source_dijkstra(
             g,
@@ -135,7 +157,7 @@ multi_source_dijkstra(
             dist_row,
             pred_row,
             num_targets,
-            cutoff
+            source_cutoff
         );
     }
 
@@ -152,7 +174,7 @@ PYBIND11_MODULE(fast_dijkstra, m) {
         py::arg("indices"),
         py::arg("weights"),
         py::arg("sources"),
-        py::arg("targets"),
+        py::arg("targets")= py::none(),
         py::arg("cutoff") = INF,
         py::arg("return_predecessors") = true,
         py::arg("num_threads") = -1,
@@ -161,12 +183,13 @@ PYBIND11_MODULE(fast_dijkstra, m) {
 
         Parameters
         ----------
-        indptr : List[int]
-        indices : List[int]
-        targets: List[int]
+        indptr : list[int]
+        indices : list[int]
         weights : Sequence[float]
-        sources : List[int]
-        cutoff: OPTIONAL  float (default = np.inf)
+        sources : list[int]
+        targets: OPTIONAL list[int]  if None uses all nodes
+        cutoff: OPTIONAL list[float] | float (default = np.inf). can pass a limit per sources
+        return_predecessors: OPTIONAL bool
         num_threads: OPTIONAL int (default = -1)
             -1: maximum allowed threads
 
