@@ -1,3 +1,8 @@
+## [3.1.0] (2026-01-05)
+## changes
+* add back version 2.1.1 of dijkstra as it may be faster for simple tasks
+* rename new version with targets, cutoff (list) and  return_predecessors as dijkstra_with_targets
+
 ## [3.0.0] (2026-01-05)
 ## Features
 * targets: list[int] or None. will return only the distance for the specify targets.
