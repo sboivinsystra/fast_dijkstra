@@ -22,7 +22,7 @@ const double INF = std::numeric_limits<double>::infinity();
 void single_source_dijkstra(
     const CSRGraph& g,
     int source,
-    double* dist,
+    double* best_dist,
     int* pred,
     double cutoff
 ) {
@@ -30,7 +30,7 @@ void single_source_dijkstra(
     using Item = std::pair<double, int>;
     std::priority_queue<Item, std::vector<Item>, std::greater<Item>> heap;
 
-    dist[source] = 0.0;
+    best_dist[source] = 0.0;
     heap.emplace(0.0, source);
 
     while (!heap.empty()) {
@@ -43,8 +43,8 @@ void single_source_dijkstra(
             int next_node = g.indices[j];
             double next_dist = current_dist + g.weights[j];
             if (next_dist <= cutoff){
-                if (next_dist < dist[next_node]) {
-                    dist[next_node] = next_dist;
+                if (next_dist < best_dist[next_node]) {
+                    best_dist[next_node] = next_dist;
                     pred[next_node] = current_node;
                     heap.emplace(next_dist, next_node);
                 }
@@ -263,6 +263,105 @@ multi_source_dijkstra_with_targets(
 }
 
 
+void single_source_dijkstra_restrictions(
+    const CSRGraph& g,
+    int source,
+    double* best_dist,
+    int* pred,
+    double cutoff
+) {
+
+    using Item = std::tuple<double, int, int>;
+    std::priority_queue<Item,std::vector<Item>,std::greater<Item>> heap;
+
+    // best_dist[source] = 0.0;
+    heap.emplace(0.0, source, -1);
+
+    while (!heap.empty()) {
+        auto [current_dist, current_node, previous_link] = heap.top();
+        heap.pop();
+        // check neighbors
+        for (int link = g.indptr[current_node]; link < g.indptr[current_node + 1]; ++link) {
+            int next_node = g.indices[link];
+            int previous_node = g.indices[previous_link];
+            // No U-turns
+            if (next_node == previous_node) {
+                continue;
+            }
+            // if (is_forbidden(previous_node, current_node, next_node)) {
+            //     continue;
+            // }
+            double next_dist = current_dist + g.weights[link];
+            if (next_dist <= cutoff){
+                if (next_dist < best_dist[link]) {
+                    best_dist[link] = next_dist;
+                    pred[link] = previous_link;
+                    heap.emplace(next_dist, next_node, current_node);
+                }
+            }
+           
+        }
+    }
+}
+
+std::tuple<py::array_t<double>, py::array_t<int>>
+multi_source_dijkstra_with_restrictions(
+    py::array_t<int> indptr,
+    py::array_t<int> indices,
+    py::array_t<double> weights,
+    py::array_t<int> sources,
+    double cutoff = std::numeric_limits<double>::infinity(),
+    int num_threads = -1
+) {
+
+    if (num_threads > 0)
+        omp_set_num_threads(num_threads);
+
+    int num_nodes = indptr.size() - 1;
+    int num_sources = sources.size();
+
+    // ---- Build graph (once) ----
+    CSRGraph g;
+    g.n = num_nodes;
+    g.indptr = indptr.data();
+    g.indices = indices.data();
+    g.weights = weights.data();
+
+    int num_links = g.indptr[num_nodes]; // last element
+
+    const int* src_ptr = sources.data();
+
+    // ---- Allocate outputs ----
+    py::array_t<double> distances_out({num_sources, num_links});
+    py::array_t<int> predecessors_out({num_sources, num_links});
+    auto distances_ptr = distances_out.mutable_data();
+    auto predecessors_ptr = predecessors_out.mutable_data();
+   
+
+    #pragma omp parallel for schedule(dynamic)
+    for (int si = 0; si < num_sources; ++si) {
+        double *dist_row = distances_ptr + si * num_links;
+        int *pred_row = predecessors_ptr + si * num_links;
+
+        for (int i = 0; i < num_links; ++i) {
+            dist_row[i] = INF;
+            pred_row[i] = -9999;
+        }
+
+
+        single_source_dijkstra(
+            g,
+            src_ptr[si],
+            dist_row,
+            pred_row,
+            cutoff
+        );
+    }
+
+    return {distances_out, predecessors_out};
+}
+
+
 
 /* ---------------- pybind11 module ---------------- */
 
@@ -319,6 +418,34 @@ PYBIND11_MODULE(fast_dijkstra, m) {
         return_predecessors: OPTIONAL bool
         num_threads: OPTIONAL int (default = -1)
             -1: maximum allowed threads
+        Returns
+        -------
+        distances : numpy.ndarray
+            Array of shape (num_sources, num_nodes) with shortest distances
+        predecessors : numpy.ndarray
+            Array of shape (num_sources, num_nodes) with predecessor indices
+        )pbdoc"
+    );
+        m.def("restricted_dijkstra", &multi_source_dijkstra_with_restrictions,
+        py::arg("indptr"),
+        py::arg("indices"),
+        py::arg("weights"),
+        py::arg("sources"),
+        py::arg("cutoff") = INF,
+        py::arg("num_threads") = -1,
+        R"pbdoc(
+        Compute shortest paths using Dijkstra's algorithm. on a csr_graph
+
+        Parameters
+        ----------
+        indptr : List[int]
+        indices : List[int]
+        weights : Sequence[float]
+        sources : List[int]
+        cutoff: OPTIONAL  float (default = np.inf)
+        num_threads: OPTIONAL int (default = -1)
+            -1: maximum allowed threads
+
         Returns
         -------
         distances : numpy.ndarray
