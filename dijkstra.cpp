@@ -264,24 +264,25 @@ multi_source_dijkstra_with_targets(
 
 void single_source_dijkstra_restrictions(
     const CSRGraph& g,
-    int source, 
+    const int* links_source_ptr,
+    const int source, 
     double* best_dist,
     int* pred,
     double cutoff
 ) {
     // source is a node. return dist and pred on links
-    using Item = std::tuple<double, int, int, int>;
+    using Item = std::tuple<double, int, int>;
     std::priority_queue<Item, std::vector<Item>, std::greater<Item>> heap;
-
-    heap.emplace(0.0, source, -9999, -9999);
-
+    
+    heap.emplace(0.0, source, -9999);
     while (!heap.empty()) {
-        auto [current_dist, current_node, previous_node, previous_link] = heap.top();
+        auto [current_dist, current_node, previous_link] = heap.top();
         heap.pop();
         // Skip outdated entries
         if (previous_link != -9999 && current_dist > best_dist[previous_link]) {
             continue;
         }
+        int previous_node = links_source_ptr[previous_link];
         // check neighbors
         for (int link = g.indptr[current_node]; link < g.indptr[current_node + 1]; ++link) {
             int next_node = g.indices[link];
@@ -300,7 +301,7 @@ void single_source_dijkstra_restrictions(
             best_dist[link] = next_dist;
             pred[link] = previous_link;
             
-            heap.emplace(next_dist, next_node, current_node, link);     
+            heap.emplace(next_dist, next_node, link);     
         }
     }
 }
@@ -332,6 +333,17 @@ multi_source_dijkstra_with_restrictions(
 
     const int* src_ptr = sources.data();
 
+    //
+    std::vector<int> links_source(num_links);
+
+    for (int node = 0; node < num_nodes; ++node) {
+        for (int link = g.indptr[node]; link < g.indptr[node + 1]; ++link) {
+            links_source[link] = node;
+        }
+    }
+    const int* links_source_ptr = links_source.data();
+
+
     // ---- Allocate outputs ----
     py::array_t<double> distances_out({num_sources, num_links});
     py::array_t<int> predecessors_out({num_sources, num_links});
@@ -352,6 +364,7 @@ multi_source_dijkstra_with_restrictions(
 
         single_source_dijkstra_restrictions(
             g,
+            links_source_ptr,
             src_ptr[si],
             dist_row,
             pred_row,
