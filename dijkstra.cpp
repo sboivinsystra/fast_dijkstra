@@ -36,8 +36,7 @@ void single_source_dijkstra(
     while (!heap.empty()) {
         auto [current_dist, current_node] = heap.top();
         heap.pop();
-
-        if (current_dist > dist[current_node]) continue;
+        if (current_dist > best_dist[current_node]) continue;
         // check neighbors
         for (int j = g.indptr[current_node]; j < g.indptr[current_node + 1]; ++j) {
             int next_node = g.indices[j];
@@ -265,25 +264,28 @@ multi_source_dijkstra_with_targets(
 
 void single_source_dijkstra_restrictions(
     const CSRGraph& g,
-    int source,
+    int source, 
     double* best_dist,
     int* pred,
     double cutoff
 ) {
+    // source is a node. return dist and pred on links
+    using Item = std::tuple<double, int, int, int>;
+    std::priority_queue<Item, std::vector<Item>, std::greater<Item>> heap;
 
-    using Item = std::tuple<double, int, int>;
-    std::priority_queue<Item,std::vector<Item>,std::greater<Item>> heap;
-
-    // best_dist[source] = 0.0;
-    heap.emplace(0.0, source, -1);
+    heap.emplace(0.0, source, -9999, -9999);
 
     while (!heap.empty()) {
-        auto [current_dist, current_node, previous_link] = heap.top();
+        auto [current_dist, current_node, previous_node, previous_link] = heap.top();
         heap.pop();
+        // Skip outdated entries
+        if (previous_link != -9999 && current_dist > best_dist[previous_link]) {
+            continue;
+        }
         // check neighbors
         for (int link = g.indptr[current_node]; link < g.indptr[current_node + 1]; ++link) {
             int next_node = g.indices[link];
-            int previous_node = g.indices[previous_link];
+            //py::print("node =", current_node, "link =", link, "next_node =", next_node);
             // No U-turns
             if (next_node == previous_node) {
                 continue;
@@ -292,14 +294,13 @@ void single_source_dijkstra_restrictions(
             //     continue;
             // }
             double next_dist = current_dist + g.weights[link];
-            if (next_dist <= cutoff){
-                if (next_dist < best_dist[link]) {
-                    best_dist[link] = next_dist;
-                    pred[link] = previous_link;
-                    heap.emplace(next_dist, next_node, current_node);
-                }
-            }
-           
+            if (next_dist > cutoff) continue;
+            if (next_dist >= best_dist[link]) continue;
+
+            best_dist[link] = next_dist;
+            pred[link] = previous_link;
+            
+            heap.emplace(next_dist, next_node, current_node, link);     
         }
     }
 }
@@ -349,7 +350,7 @@ multi_source_dijkstra_with_restrictions(
         }
 
 
-        single_source_dijkstra(
+        single_source_dijkstra_restrictions(
             g,
             src_ptr[si],
             dist_row,
@@ -366,7 +367,7 @@ multi_source_dijkstra_with_restrictions(
 /* ---------------- pybind11 module ---------------- */
 
 PYBIND11_MODULE(fast_dijkstra, m) {
-    m.doc() = "Fast multi-source Dijkstra";
+    m.doc() = "Fast multi-source Dijkstra test";
     m.def("dijkstra", &multi_source_dijkstra,
         py::arg("indptr"),
         py::arg("indices"),
