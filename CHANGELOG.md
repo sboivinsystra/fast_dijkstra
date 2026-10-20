@@ -1,6 +1,6 @@
 ## [4.0.0] (2026-10-20)
 ## Features
-* New dijkstra_with_targets. provide targets per sources (as CRS matrix).
+* New dijkstra_on_multi_targets. provide targets per sources (as CRS matrix).
 
 ## [3.1.0] (2026-10-13)
 ## changes
