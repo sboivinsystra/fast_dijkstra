@@ -4,7 +4,6 @@
 #include <queue>
 #include <limits>
 #include <omp.h>
-
 namespace py = pybind11;
 
 
@@ -269,6 +268,7 @@ void single_dijkstra_on_targets_list(
     const CSRGraph& g,
     int source,
     const char* is_target,
+    const char* to_skip,
     int num_targets,
     double* best_dist,
     int* pred,
@@ -294,6 +294,7 @@ void single_dijkstra_on_targets_list(
 
         for (int j = g.indptr[current_node]; j < g.indptr[current_node + 1]; ++j) {
             int next_node = g.indices[j];
+            if (to_skip[next_node]) continue;
             double next_dist = current_dist + g.weights[j];
             if (next_dist <= cutoff){
                 if (next_dist < best_dist[next_node]) {
@@ -323,8 +324,9 @@ multi_source_dijkstra_on_multi_targets(
 
     if (num_threads > 0) omp_set_num_threads(num_threads);
 
-    int num_nodes = indptr.size() - 1;
-    int num_sources = sources.size();
+    const int num_nodes = indptr.size() - 1;
+    const int num_sources = sources.size();
+    const int* src_ptr = sources.data();
 
     // ---- Build graph (once) ----
     CSRGraph g;
@@ -333,9 +335,16 @@ multi_source_dijkstra_on_multi_targets(
     g.indices = indices.data();
     g.weights = weights.data();
 
-    const int* src_ptr = sources.data();
+
+    // process targets
     const int* target_indptr_ptr = target_indptr.data();
     const int* target_indices_ptr = target_indices.data();
+    // get all unique targets. mark node as true
+    std::vector<char> all_targets(num_nodes, false);
+    for (py::ssize_t i = 0, n = target_indices.shape(0); i < n; ++i) {
+        all_targets[target_indices_ptr[i]] = true;
+    }
+
     // ---- Allocate outputs ----
     py::array_t<double> distances_out({num_sources, num_nodes});
     py::array_t<int> predecessors_out({num_sources, num_nodes});
@@ -347,19 +356,20 @@ multi_source_dijkstra_on_multi_targets(
     for (int si = 0; si < num_sources; ++si) {
         double *dist_row = distances_ptr + si * num_nodes;
         int *pred_row = predecessors_ptr + si * num_nodes;
-
         for (int i = 0; i < num_nodes; ++i) {
             dist_row[i] = INF;
             pred_row[i] = -9999;
         }
 
         std::vector<char> is_target(num_nodes, false);
-         const char* is_target_ptr = is_target.data();
+        std::vector<char> to_skip(all_targets); // copy targets as True
 
         int start = target_indptr_ptr[si];
         int end = target_indptr_ptr[si + 1];
         for (int j = start; j < end; ++j) {
-            is_target[target_indices_ptr[j]] = true;
+            int t = target_indices_ptr[j];
+            is_target[t] = true;
+            to_skip[t] = false;
         }
         int source_num_targets = end - start;
         
@@ -367,7 +377,8 @@ multi_source_dijkstra_on_multi_targets(
         single_dijkstra_on_targets_list(
             g,
             src_ptr[si],
-            is_target_ptr,
+            is_target.data(),
+            to_skip.data(),
             source_num_targets,
             dist_row,
             pred_row,
@@ -378,12 +389,10 @@ multi_source_dijkstra_on_multi_targets(
     return {distances_out, predecessors_out};
 }
 
-
-
 /* ---------------- pybind11 module ---------------- */
 
 PYBIND11_MODULE(fast_dijkstra, m) {
-    m.doc() = "Fast multi-source Dijkstra 4.0.0";
+    m.doc() = "Fast multi-source Dijkstra 4.1.0";
     m.def("dijkstra", &multi_source_dijkstra,
         py::arg("indptr"),
         py::arg("indices"),
@@ -442,8 +451,7 @@ PYBIND11_MODULE(fast_dijkstra, m) {
         predecessors : numpy.ndarray
             Array of shape (num_sources, num_nodes) with predecessor indices
         )pbdoc"
-    );
-      
+    ); 
         m.def("dijkstra_on_multi_targets", &multi_source_dijkstra_on_multi_targets,
         py::arg("indptr"),
         py::arg("indices"),

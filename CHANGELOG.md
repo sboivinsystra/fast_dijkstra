@@ -1,3 +1,7 @@
+## [4.1.0] (2026-10-22)
+## Changes
+*  dijkstra_on_multi_targets: dont add target in relaxation, if its not a target for this origin
+
 ## [4.0.0] (2026-10-20)
 ## Features
 * New dijkstra_on_multi_targets. provide targets per sources (as CRS matrix).
